@@ -1,0 +1,205 @@
+.titillium-web-extralight {
+    font-family: "Titillium Web", sans-serif;
+    font-weight: 200;
+    font-style: normal;
+  }
+  
+  .titillium-web-light {
+    font-family: "Titillium Web", sans-serif;
+    font-weight: 300;
+    font-style: normal;
+  }
+  
+  .titillium-web-regular {
+    font-family: "Titillium Web", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+  }
+  
+  .titillium-web-semibold {
+    font-family: "Titillium Web", sans-serif;
+    font-weight: 600;
+    font-style: normal;
+  }
+  
+  .titillium-web-bold {
+    font-family: "Titillium Web", sans-serif;
+    font-weight: 700;
+    font-style: normal;
+  }
+  
+  .titillium-web-black {
+    font-family: "Titillium Web", sans-serif;
+    font-weight: 900;
+    font-style: normal;
+  }
+  
+  .titillium-web-extralight-italic {
+    font-family: "Titillium Web", sans-serif;
+    font-weight: 200;
+    font-style: italic;
+  }
+  
+  .titillium-web-light-italic {
+    font-family: "Titillium Web", sans-serif;
+    font-weight: 300;
+    font-style: italic;
+  }
+  
+  .titillium-web-regular-italic {
+    font-family: "Titillium Web", sans-serif;
+    font-weight: 400;
+    font-style: italic;
+  }
+  
+  .titillium-web-semibold-italic {
+    font-family: "Titillium Web", sans-serif;
+    font-weight: 600;
+    font-style: italic;
+  }
+  
+  .titillium-web-bold-italic {
+    font-family: "Titillium Web", sans-serif;
+    font-weight: 700;
+    font-style: italic;
+  }
+
+  /* Griglia delle card delle ricette */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 40px;
+  }
+  .card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+  }
+  .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+  }
+  /* Sezione Dettaglio Ricetta */
+  .recipe-detail {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+    padding: 30px;
+    margin-bottom: 40px;
+    position: relative;
+  }
+  .recipe-detail h2 {
+    font-size: 24px;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+    text-align: center;
+    color: #111;
+  }
+  .recipe-info {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .recipe-info p {
+    font-size: 16px;
+    margin: 5px 0;
+    color: #555;
+  }
+  /* Griglia degli Ingredienti */
+  .ingredient-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 20px;
+  }
+  .ingredient-card {
+    background-color: #fdfdfd;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 15px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+  }
+  .ingredient-card:hover {
+    background-color: #f9f9f9;
+    transform: scale(1.02);
+  }
+  .ingredient-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .ingredient-label {
+    font-size: 16px;
+    font-weight: 500;
+    margin-bottom: 10px;
+  }
+  .alternative-icons {
+    display: flex;
+    gap: 8px;
+  }
+  .alternative-icon {
+    font-size: 20px;
+    color: #007aff;
+  }
+  /* Container per alternative espandibili */
+  .ingredient-alternatives {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #eee;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .alternative-chip {
+    background: #e0f0ff;
+    border-radius: 16px;
+    padding: 5px 10px;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    transition: background 0.3s ease, color 0.3s ease;
+  }
+  .alternative-chip .material-icons {
+    font-size: 16px;
+  }
+  .alternative-chip.selected {
+    background: #007aff;
+    color: #fff;
+  }
+  /* Pulsante Rielabora */
+  #reworkButton {
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    background: #007aff;
+    color: white;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  #reworkButton:hover {
+    background: #005bb5;
+  }
+  /* Container per il risultato della rielaborazione */
+  .reworked-result {
+    margin-top: 20px;
+    padding: 15px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: #f0f0f0;
+    font-size: 16px;
+  }
+  /* Placeholder per il dettaglio */
+  .detail-placeholder {
+    text-align: center;
+    font-size: 18px;
+    color: #777;
+    margin-top: 20px;
+  }

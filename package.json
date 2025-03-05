@@ -11,6 +11,7 @@
     "start": "node index.js"
   },
   "dependencies": {
+    "bootstrap": "^5.3.3",
     "express": "^4.21.2",
     "node-fetch": "^3.3.2"
   }
