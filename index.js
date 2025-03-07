@@ -31,25 +31,77 @@ async function executeSparqlQuery(query) {
 
 app.get("/recipes", async (req, res) => {
   const query = `
-      PREFIX dbo: <http://dbpedia.org/ontology/>
-      PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-      PREFIX foaf: <http://xmlns.com/foaf/0.1/>
-      
-      SELECT ?recipe ?label 
-             (GROUP_CONCAT(DISTINCT ?ingredient; separator=", ") AS ?ingredients)
-             ?region ?type ?topic
-      WHERE {
-        ?recipe a dbo:Recipe .
-        OPTIONAL {
-          ?recipe rdfs:label ?label .
-          FILTER (lang(?label) = "it")
-        }
-        OPTIONAL { ?recipe dbo:ingredient ?ingredient . }
-        OPTIONAL { ?recipe dbo:region ?region . }
-        OPTIONAL { ?recipe dbo:type ?type . }
-        OPTIONAL { ?recipe foaf:isPrimaryTopicOf ?topic . }
-      }
-      GROUP BY ?recipe ?label ?region ?type ?topic
+PREFIX ex: <http://example.org/ontology#>
+PREFIX dbo: <http://dbpedia.org/ontology/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+SELECT ?recipe ?name 
+       (GROUP_CONCAT(DISTINCT ?ingredient; separator=", ") AS ?ingredients)
+       ?region ?category ?topic
+WHERE {
+  ?recipe a ex:Recipe .
+  
+  OPTIONAL {
+    ?recipe dbo:name ?name .
+    FILTER (lang(?name) = "it")
+  }
+  OPTIONAL { ?recipe dbo:ingredient ?ingredient . }
+  OPTIONAL { ?recipe dbo:region ?region . }
+  OPTIONAL { ?recipe dbo:category ?category . }
+  OPTIONAL { ?recipe dbo:wikiPageExternalLink ?topic . }
+}
+GROUP BY ?recipe ?name ?region ?category ?topic
+
+    `;
+  try {
+    const data = await executeSparqlQuery(query);
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get("/recipes/diet", async (req, res) => {
+  const type = req.query.type;
+  if (!type) {
+    return res.status(400).json({ error: "Parametro 'type' mancante" });
+  }
+  if (
+    type !== "isVegan" &&
+    type !== "isVegetarian" &&
+    type !== "isGlutenFree" &&
+    type !== "isLactoseFree"
+  ) {
+    return res.status(400).json({ error: "Tipo non valido" });
+  }
+  const query = `
+PREFIX ex: <http://example.org/ontology#>
+PREFIX dbo: <http://dbpedia.org/ontology/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+SELECT ?recipe ?name 
+       (GROUP_CONCAT(DISTINCT ?ingredient; separator=", ") AS ?ingredients)
+       ?region ?category ?link
+WHERE {
+  ?recipe a ex:Recipe .  # Seleziona tutte le ricette
+  
+  # Controlla che siano del tipo della dieta scelta in base alla proprietà
+  ?recipe ex:${type} "true"^^xsd:boolean .
+  
+  OPTIONAL {
+    ?recipe dbo:name ?name .
+    FILTER (lang(?name) = "it")
+  }
+  
+  OPTIONAL { ?recipe dbo:ingredient ?ingredient . }
+  OPTIONAL { ?recipe dbo:region ?region . }
+  OPTIONAL { ?recipe dbo:category ?category . }
+  OPTIONAL { ?recipe dbo:wikiPageExternalLink ?link . }
+}
+GROUP BY ?recipe ?name ?region ?category ?link
+
     `;
   try {
     const data = await executeSparqlQuery(query);
@@ -67,21 +119,21 @@ app.get("/alternatives", async (req, res) => {
   }
 
   const query = `
+      PREFIX ex: <http://example.org/ontology#>
       PREFIX dbo: <http://dbpedia.org/ontology/>
-      PREFIX dbr: <http://dbpedia.org/resource/>
       PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
       SELECT ?type (GROUP_CONCAT(DISTINCT ?alternativeLabel; separator=", ") AS ?alternatives) WHERE {
-          dbr:${ingredient} ?type ?alternative .
+          ex:${ingredient} ?type ?alternative .
           FILTER (?type IN (
-              dbo:alternative,
-              dbo:bindingAlternative,
-              dbo:leaveningAlternative,
-              dbo:veganAlternative,
-              dbo:vegetarianAlternative
+              ex:alternative,
+              ex:bindingAlternative,
+              ex:leaveningAlternative,
+              ex:veganAlternative,
+              ex:vegetarianAlternative,
+              ex:glutenFreeAlternative
           ))
-          ?alternative rdfs:label ?alternativeLabel .
-          FILTER (lang(?alternativeLabel) = "it")
+          ?alternative dbo:name ?alternativeLabel .
       }
       GROUP BY ?type
   `;
