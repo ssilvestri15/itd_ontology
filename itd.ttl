@@ -1,0 +1,33 @@
+PREFIX :       <http://base/#>
+PREFIX fuseki: <http://jena.apache.org/fuseki#>
+PREFIX ja:     <http://jena.hpl.hp.com/2005/11/Assembler#>
+PREFIX rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs:   <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX tdb2:   <http://jena.apache.org/2016/tdb#>
+
+# Servizio di Fuseki per il dataset con inferenza
+:service_tdb_all  rdf:type            fuseki:Service;
+        rdfs:label                    "TDB2 con Inferenza";
+        fuseki:dataset                :tdb_dataset_inference;
+        fuseki:name                   "itd";
+        fuseki:serviceQuery           "query" , "sparql" , "";
+        fuseki:serviceReadGraphStore  "get";
+        fuseki:serviceReadWriteGraphStore "data";
+        fuseki:serviceUpdate          "" , "update";
+        fuseki:serviceUpload          "upload" .
+
+# Dataset che include il modello inferenziale
+:tdb_dataset_inference
+        rdf:type       ja:RDFDataset;
+        ja:defaultGraph :inferenceModel .
+
+# Modello inferenziale basato su TDB2
+:inferenceModel rdf:type ja:InfModel;
+    ja:reasoner [ 
+        ja:reasonerURL <http://jena.hpl.hp.com/2003/OWLFBRuleReasoner>  # Full OWL Reasoner
+    ];
+    ja:baseModel :baseModel .
+
+# Il modello base è un GraphTDB2
+:baseModel rdf:type tdb2:GraphTDB2;
+    tdb2:location "C:\\Users\\silve\\Downloads\\apache-jena-fuseki-5.3.0\\run/databases/itd" .
