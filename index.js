@@ -35,12 +35,14 @@ PREFIX ex: <http://example.org/ontology#>
 PREFIX dbo: <http://dbpedia.org/ontology/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
 SELECT ?recipe ?name 
        (GROUP_CONCAT(DISTINCT ?ingredient; separator=", ") AS ?ingredients)
-       ?region ?category ?topic
+       ?region ?category ?topic ?ingredientText ?preparation
 WHERE {
-  ?recipe a ex:Recipe .
+  ?recipe rdf:type ex:Recipe .
+  FILTER NOT EXISTS { ?recipe rdf:type dbo:Food }
   
   OPTIONAL {
     ?recipe dbo:name ?name .
@@ -50,9 +52,10 @@ WHERE {
   OPTIONAL { ?recipe dbo:region ?region . }
   OPTIONAL { ?recipe dbo:category ?category . }
   OPTIONAL { ?recipe dbo:wikiPageExternalLink ?topic . }
+  OPTIONAL { ?recipe ex:hasIngredientText ?ingredientText . }
+  OPTIONAL { ?recipe ex:hasPreparation ?preparation . }
 }
-GROUP BY ?recipe ?name ?region ?category ?topic
-
+GROUP BY ?recipe ?name ?region ?category ?topic ?ingredientText ?preparation
     `;
   try {
     const data = await executeSparqlQuery(query);
@@ -63,17 +66,25 @@ GROUP BY ?recipe ?name ?region ?category ?topic
 });
 
 app.get("/recipes/diet", async (req, res) => {
-  const type = req.query.type;
+  var type = req.query.type;
   if (!type) {
     return res.status(400).json({ error: "Parametro 'type' mancante" });
   }
-  if (
-    type !== "isVegan" &&
-    type !== "isVegetarian" &&
-    type !== "isGlutenFree" &&
-    type !== "isLactoseFree"
-  ) {
-    return res.status(400).json({ error: "Tipo non valido" });
+  switch (type) {
+    case "isVegan":
+      type = "VeganRecipe";
+      break;
+    case "isVegetarian":
+      type = "VegetarianRecipe";
+      break;
+    case "isGlutenFree":
+      type = "GlutenFreeRecipe";
+      break;
+    case "isLactoseFree":
+      type = "LactoseFreeRecipe";
+      break;
+    default:
+      return res.status(400).json({ error: "Tipo non valido" });
   }
   const query = `
 PREFIX ex: <http://example.org/ontology#>
@@ -83,12 +94,9 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 SELECT ?recipe ?name 
        (GROUP_CONCAT(DISTINCT ?ingredient; separator=", ") AS ?ingredients)
-       ?region ?category ?link
+       ?region ?category ?topic ?ingredientText ?preparation
 WHERE {
-  ?recipe a ex:Recipe .  # Seleziona tutte le ricette
-  
-  # Controlla che siano del tipo della dieta scelta in base alla proprietà
-  ?recipe ex:${type} "true"^^xsd:boolean .
+  ?recipe a ex:${type} .  # Usa direttamente la classe inferita
   
   OPTIONAL {
     ?recipe dbo:name ?name .
@@ -98,9 +106,12 @@ WHERE {
   OPTIONAL { ?recipe dbo:ingredient ?ingredient . }
   OPTIONAL { ?recipe dbo:region ?region . }
   OPTIONAL { ?recipe dbo:category ?category . }
-  OPTIONAL { ?recipe dbo:wikiPageExternalLink ?link . }
+  OPTIONAL { ?recipe dbo:wikiPageExternalLink ?topic . }
+  OPTIONAL { ?recipe ex:hasIngredientText ?ingredientText . }
+  OPTIONAL { ?recipe ex:hasPreparation ?preparation . }
+
 }
-GROUP BY ?recipe ?name ?region ?category ?link
+GROUP BY ?recipe ?name ?region ?category ?topic ?ingredientText ?preparation
 
     `;
   try {

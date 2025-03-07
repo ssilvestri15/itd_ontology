@@ -58,6 +58,8 @@ document.addEventListener("DOMContentLoaded", () => {
         ? item.ingredients.value.split(",").map((i) => i.trim())
         : [],
       topic: item.topic ? item.topic.value : "",
+      preparation: item.preparation ? item.preparation.value : "",
+      ingredientText: item.ingredientText ? item.ingredientText.value : "",
     }));
   }
 
@@ -216,6 +218,13 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  function replaceIfStartsWith(originalString, startSubstring, replacement) {
+    if (originalString.startsWith(startSubstring)) {
+      return replacement + originalString.slice(startSubstring.length);
+    }
+    return originalString;
+  }
+
   // Mostra il dettaglio della ricetta selezionata, includendo per ogni ingrediente le alternative (se presenti)
   async function displayRecipeDetail(recipe) {
     const detailContainer = document.getElementById("recipeDetail");
@@ -230,7 +239,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const info = document.createElement("div");
     info.className = "recipe-info";
     info.innerHTML = `<p><strong>Regione:</strong> ${recipe.region}</p>
-                        <p><strong>Tipo:</strong> ${recipe.type}</p>`;
+                        <p><strong>Tipo:</strong> ${recipe.type}</p>
+                        <p><strong>Preparazione:</strong> ${
+                          recipe.preparation
+                        }</p>
+                        <p><strong>Ingredienti:</strong> ${replaceIfStartsWith(
+                          recipe.ingredientText,
+                          "Ingredienti:",
+                          ""
+                        )}</p>`;
     detailContainer.appendChild(info);
 
     const ingredientLabel = document.createElement("h3");
