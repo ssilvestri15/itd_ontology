@@ -157,6 +157,42 @@ app.get("/alternatives", async (req, res) => {
   }
 });
 
+app.get("/ingredients/calories", async (req, res) => {
+  const ingredientName = req.query.name;
+  if (!ingredientName) {
+      return res.status(400).json({ error: "Nome ingrediente mancante" });
+  }
+
+  const query = `
+    PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+    PREFIX dbo: <http://dbpedia.org/ontology/>
+    PREFIX ex: <http://example.org/ontology#>
+
+    SELECT ?calories WHERE {
+      ?food dbo:name "${ingredientName}"@it .
+      ?food dbo:calories ?calories .
+    } LIMIT 1
+  `;
+  
+  try {
+      const response = await fetch(`${FUSEKI_URL}?query=${encodeURIComponent(query)}&format=json`);
+      if (!response.ok) {
+          throw new Error("Errore nella richiesta a Fuseki");
+      }
+      
+      const data = await response.json();
+      
+      if (data.results.bindings.length > 0) {
+          res.json({ calories: data.results.bindings[0].calories.value });
+      } else {
+          res.json({ calories: "" }); // Nessuna caloria trovata
+      }
+  } catch (error) {
+      console.error("Errore nel recupero delle calorie:", error);
+      res.status(500).json({ error: "Errore nel recupero delle calorie" });
+  }
+});
+
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
 });

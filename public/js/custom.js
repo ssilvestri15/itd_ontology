@@ -113,6 +113,26 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  async function fetchIngredientCalories(ingredient) {
+    try {
+        const ingredientName = encodeURIComponent(extractLocalName(ingredient));
+        const response = await fetch(`/ingredients/calories?name=${ingredientName}`);
+
+        if (!response.ok) {
+            throw new Error(`Errore nella richiesta delle calorie: ${response.status}`);
+        }
+        
+        const data = await response.json();
+
+        // Controllo per evitare errori se il backend non restituisce dati validi
+        return data.calories !== undefined ? data.calories : "";
+
+    } catch (error) {
+        console.error("Errore nel recupero delle calorie:", error);
+        return ""; // Ritorna stringa vuota in caso di errore per non bloccare il rendering
+    }
+  }
+
   // Popola i filtri per Regione e Tipo
   function populateFilters() {
     const regionFilter = document.getElementById("regionFilter");
@@ -271,6 +291,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
       header.appendChild(labelSpan);
       ingCard.appendChild(header);
+
+      // Esegue la query per ottenere le calorie dell'ingrediente
+      const calorieValue = await fetchIngredientCalories(ing);
+      if (calorieValue) {  // Controlla se calorieValue non è vuoto
+          const calorieInfo = document.createElement("p");
+          calorieInfo.className = "ingredient-calories";
+          calorieInfo.textContent = `Calorie: ${calorieValue} kcal`;
+          ingCard.appendChild(calorieInfo);
+      }
+
+      grid.appendChild(ingCard);
 
       // Esegue la query per le alternative per questo ingrediente
       const altData = await fetchIngredientAlternatives(ing);
