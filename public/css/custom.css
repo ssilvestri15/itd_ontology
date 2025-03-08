@@ -203,3 +203,12 @@
     color: #777;
     margin-top: 20px;
   }
+
+  footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: absolute;
+    bottom: 0;
+    padding: 12px;
+  }

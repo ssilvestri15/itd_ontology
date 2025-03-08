@@ -183,59 +183,146 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Renderizza le card in base ai filtri oppure mostra il dettaglio se una ricetta è selezionata
-  function renderCards() {
-    const cardsGrid = document.getElementById("cardsGrid");
-    if (selectedRecipe) {
+  let currentPage = 1;
+  const recipesPerPage = 20;
+
+function renderCards() {
+  const cardsGrid = document.getElementById("cardsGrid");
+  const paginationContainer = document.getElementById("pagination");
+  const totalRecipesContainer = document.getElementById("totalRecipes");
+
+  if (selectedRecipe) {
       cardsGrid.innerHTML = "";
+      paginationContainer.innerHTML = ""; // Nasconde la paginazione se una ricetta è selezionata
       return;
-    }
-    cardsGrid.innerHTML = "";
-    const searchTerm = document
-      .getElementById("searchInput")
-      .value.toLowerCase();
-    const selectedRegion = document.getElementById("regionFilter").value;
-    const selectedType = document.getElementById("typeFilter").value;
-    const selectedDiet = document.getElementById("dietFilter").value;
+  }
 
-    const filteredRecipes = recipes.filter((recipe) => {
+  cardsGrid.innerHTML = "";
+  paginationContainer.innerHTML = ""; // Resetta la paginazione
+
+  const searchTerm = document.getElementById("searchInput").value.toLowerCase();
+  const selectedRegion = document.getElementById("regionFilter").value;
+  const selectedType = document.getElementById("typeFilter").value;
+
+  const filteredRecipes = recipes.filter((recipe) => {
       return (
-        recipe.label.toLowerCase().includes(searchTerm) &&
-        (selectedRegion === "" || recipe.region === selectedRegion) &&
-        (selectedType === "" || recipe.type === selectedType)
+          recipe.label.toLowerCase().includes(searchTerm) &&
+          (selectedRegion === "" || recipe.region === selectedRegion) &&
+          (selectedType === "" || recipe.type === selectedType)
       );
-    });
+  });
 
-    if (filteredRecipes.length === 0) {
+  totalRecipesContainer.innerHTML = `<p class="m-0">Ricette trovate: <b>${filteredRecipes.length}</b></p>`;
+
+  if (filteredRecipes.length === 0) {
       cardsGrid.innerHTML = `<p style="text-align:center; width:100%; color:#777;">Nessuna ricetta trovata.</p>`;
       return;
-    }
+  }
 
-    filteredRecipes.forEach((recipe) => {
+  // Calcola l'indice di partenza e fine per la pagina attuale
+  const startIndex = (currentPage - 1) * recipesPerPage;
+  const endIndex = startIndex + recipesPerPage;
+  const paginatedRecipes = filteredRecipes.slice(startIndex, endIndex);
+
+  // Renderizza le card delle ricette della pagina corrente
+  paginatedRecipes.forEach((recipe) => {
       const card = document.createElement("div");
       card.className = "card";
       card.dataset.id = recipe.id;
       card.innerHTML = `
           <div class="card-body">
-          <h5 class="card-title">${recipe.label}</h5>
-          <p class="card-text"><strong>Regione:</strong> ${recipe.region}</p>
-          <p class="card-text"><strong>Tipo:</strong> ${recipe.type}</p>
+              <h5 class="card-title">${recipe.label}</h5>
+              <p class="card-text"><strong>Regione:</strong> ${recipe.region}</p>
+              <p class="card-text"><strong>Tipo:</strong> ${recipe.type}</p>
           </div>
-        `;
+      `;
       card.addEventListener("click", () => {
-        if (selectedRecipe && selectedRecipe.id === recipe.id) {
-          selectedRecipe = null;
-          document.getElementById("recipeDetail").innerHTML =
-            "Seleziona una ricetta per vedere i dettagli";
-          renderCards();
-        } else {
-          selectedRecipe = recipe;
-          cardsGrid.innerHTML = "";
-          displayRecipeDetail(recipe);
-        }
+          if (selectedRecipe && selectedRecipe.id === recipe.id) {
+              selectedRecipe = null;
+              document.getElementById("recipeDetail").innerHTML = "Seleziona una ricetta per vedere i dettagli";
+              renderCards();
+          } else {
+              //selectedRecipe = recipe;
+              //cardsGrid.innerHTML = "";
+              displayRecipeDetail(recipe);
+          }
       });
       cardsGrid.appendChild(card);
     });
+
+    // Genera i pulsanti di paginazione
+    renderPagination(filteredRecipes.length);
+  }
+
+  function renderPagination(totalRecipes) {
+    const paginationContainer = document.getElementById("pagination");
+    paginationContainer.innerHTML = ""; // Resetta la paginazione
+
+    const totalPages = Math.ceil(totalRecipes / recipesPerPage);
+    if (totalPages <= 1) return; // Se c'è solo una pagina, non mostrare nulla
+
+    const ul = document.createElement("ul");
+    ul.className = "pagination justify-content-center align-items-center";
+
+    // Pulsante "Inizio" (<<)
+    const firstLi = document.createElement("li");
+    firstLi.className = `page-item ${currentPage === 1 ? "disabled" : ""}`;
+    firstLi.innerHTML = `<a class="page-link" href="#" aria-label="First"><span aria-hidden="true">&laquo;&laquo;</span></a>`;
+    firstLi.addEventListener("click", (e) => {
+        e.preventDefault();
+        if (currentPage > 1) {
+            currentPage = 1;
+            renderCards();
+        }
+    });
+    ul.appendChild(firstLi);
+
+    // Pulsante "Indietro" (<)
+    const prevLi = document.createElement("li");
+    prevLi.className = `page-item ${currentPage === 1 ? "disabled" : ""}`;
+    prevLi.innerHTML = `<a class="page-link" href="#" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a>`;
+    prevLi.addEventListener("click", (e) => {
+        e.preventDefault();
+        if (currentPage > 1) {
+            currentPage--;
+            renderCards();
+        }
+    });
+    ul.appendChild(prevLi);
+
+    // Indicatore "Pagina X di Y"
+    const pageInfoLi = document.createElement("li");
+    pageInfoLi.className = "page-item disabled";
+    pageInfoLi.innerHTML = `<span class="page-link" style="pointer-events: none;">${currentPage} di ${totalPages}</span>`;
+    ul.appendChild(pageInfoLi);
+
+    // Pulsante "Avanti" (>)
+    const nextLi = document.createElement("li");
+    nextLi.className = `page-item ${currentPage === totalPages ? "disabled" : ""}`;
+    nextLi.innerHTML = `<a class="page-link" href="#" aria-label="Next"><span aria-hidden="true">&raquo;</span></a>`;
+    nextLi.addEventListener("click", (e) => {
+        e.preventDefault();
+        if (currentPage < totalPages) {
+            currentPage++;
+            renderCards();
+        }
+    });
+    ul.appendChild(nextLi);
+
+    // Pulsante "Fine" (>>)
+    const lastLi = document.createElement("li");
+    lastLi.className = `page-item ${currentPage === totalPages ? "disabled" : ""}`;
+    lastLi.innerHTML = `<a class="page-link" href="#" aria-label="Last"><span aria-hidden="true">&raquo;&raquo;</span></a>`;
+    lastLi.addEventListener("click", (e) => {
+        e.preventDefault();
+        if (currentPage < totalPages) {
+            currentPage = totalPages;
+            renderCards();
+        }
+    });
+    ul.appendChild(lastLi);
+
+    paginationContainer.appendChild(ul);
   }
 
   function replaceIfStartsWith(originalString, startSubstring, replacement) {
@@ -376,6 +463,9 @@ document.addEventListener("DOMContentLoaded", () => {
       window.scrollTo({ top: 0, left: 0, behavior: "instant" });
     });
     detailContainer.appendChild(backBtn);
+    
+    const myModal = new bootstrap.Modal(document.getElementById('modalRecipe'));
+    myModal.show();
   }
 
   // Funzione per simulare la rielaborazione della ricetta
