@@ -106,6 +106,20 @@ class ApiService {
     );
   }
 
+  async getGeminiNutrition(data) {
+    return this.fetchWithCache(
+      `/gemini?type=nutrition&jsonToSend=${data}`,
+      `gemini_nutrition_${data}`
+    );
+  }
+
+  async getGeminiRework(data) {
+    return this.fetchWithCache(
+      `/gemini?type=rework&jsonToSend=${data}`,
+      `gemini_rework_${data}`
+    );
+  }
+
   async getIngredientAlternatives(ingredient) {
     const cleaned = Utils.extractLocalName(ingredient).replace(/\s+/g, "");
     return this.fetchWithCache(
@@ -124,6 +138,22 @@ class ApiService {
         `calories_${ingredientName}`
       );
       return data.calories !== undefined ? data.calories : "";
+    } catch (error) {
+      console.error("Errore nel recupero delle calorie:", error);
+      return "";
+    }
+  }
+
+  async getIngredientNutrition(ingredient) {
+    const ingredientName = encodeURIComponent(
+      Utils.extractLocalName(ingredient)
+    );
+    try {
+      const data = await this.fetchWithCache(
+        `/ingredients/nutrition?name=${ingredientName}`,
+        `nutrition_${ingredientName}`
+      );
+      return data !== undefined ? data : {};
     } catch (error) {
       console.error("Errore nel recupero delle calorie:", error);
       return "";
@@ -472,12 +502,20 @@ class RecipeUI {
   }
 
   async displayRecipeDetail(recipe) {
+    const mappingIngsValue = new Map();
     const detailContainer = this.elements.recipeDetail;
     detailContainer.innerHTML = `<div class="text-center"><div class="spinner-border" role="status"><span class="visually-hidden">Caricamento...</span></div></div>`;
 
     const title = document.createElement("h2");
     title.textContent = recipe.label;
     title.classList.add("titillium-web-bold", "text-center");
+
+    const subs = document.createElement("div");
+    subs.className = "recipe-info";
+    subs.innerHTML = `
+      <p><strong>Regione:</strong> ${recipe.region}</p>
+      <p><strong>Tipo:</strong> ${recipe.type}</p>
+    `;
 
     const info = document.createElement("div");
     info.className = "recipe-info";
@@ -492,6 +530,22 @@ class RecipeUI {
       )}</p>
     `;
 
+    //Hidden div for gemini nutrition
+    const geminiNutrition = document.createElement("div");
+    geminiNutrition.className = "gemini-nutrition";
+    geminiNutrition.id = "geminiNutrition";
+    geminiNutrition.innerHTML = `
+              <h3>Valori Nutrizionali per una porzione -- Powered by Google Gemini AI</h3>
+              <div class="gemini-loading">
+                <div class="gemini-star">
+                  <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 32 32" width="32" height="32" preserveAspectRatio="xMidYMid meet" style="width: 100%; height: 100%; transform: translate3d(0px, 0px, 0px); content-visibility: visible;"><defs><clipPath id="__lottie_element_131"><rect width="32" height="32" x="0" y="0"></rect></clipPath><g id="__lottie_element_138"><g transform="matrix(-1,0,0,-1,16,16)" opacity="1" style="display: block;"><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path fill="url(#__lottie_element_141)" fill-opacity="1" d=" M0.027000000700354576,14 C0.47999998927116394,6.489999771118164 6.489999771118164,0.47999998927116394 14,0.027000000700354576 C14,0.027000000700354576 14,-0.027000000700354576 14,-0.027000000700354576 C6.489999771118164,-0.47999998927116394 0.47999998927116394,-6.489999771118164 0.027000000700354576,-14 C0.027000000700354576,-14 -0.027000000700354576,-14 -0.027000000700354576,-14 C-0.47999998927116394,-6.489999771118164 -6.489999771118164,-0.47999998927116394 -14,-0.027000000700354576 C-14,-0.027000000700354576 -14,0.027000000700354576 -14,0.027000000700354576 C-6.489999771118164,0.47999998927116394 -0.47999998927116394,6.489999771118164 -0.027000000700354576,14 C-0.027000000700354576,14 0.027000000700354576,14 0.027000000700354576,14z"></path></g></g></g><linearGradient id="__lottie_element_141" spreadMethod="pad" gradientUnits="userSpaceOnUse" x1="-9.222999572753906" y1="8.489999771118164" x2="10.461999893188477" y2="-8.211999893188477"><stop offset="0%" stop-color="rgb(33,123,254)"></stop><stop offset="14%" stop-color="rgb(20,133,252)"></stop><stop offset="27%" stop-color="rgb(7,142,251)"></stop><stop offset="52%" stop-color="rgb(84,143,253)"></stop><stop offset="78%" stop-color="rgb(161,144,255)"></stop><stop offset="89%" stop-color="rgb(175,148,254)"></stop><stop offset="100%" stop-color="rgb(189,153,254)"></stop></linearGradient><linearGradient id="__lottie_element_145" spreadMethod="pad" gradientUnits="userSpaceOnUse" x1="-4.002999782562256" y1="4.630000114440918" x2="8.092000007629395" y2="-7.886000156402588"><stop offset="0%" stop-color="rgb(33,123,254)"></stop><stop offset="14%" stop-color="rgb(20,133,252)"></stop><stop offset="27%" stop-color="rgb(7,142,251)"></stop><stop offset="52%" stop-color="rgb(84,143,253)"></stop><stop offset="78%" stop-color="rgb(161,144,255)"></stop><stop offset="89%" stop-color="rgb(175,148,254)"></stop><stop offset="100%" stop-color="rgb(189,153,254)"></stop></linearGradient><mask id="__lottie_element_138_1" mask-type="alpha"><use xlink:href="#__lottie_element_138"></use></mask></defs><g clip-path="url(#__lottie_element_131)"><g mask="url(#__lottie_element_138_1)" style="display: block;"><g transform="matrix(1,0,0,1,16,16)" opacity="1"><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path fill="url(#__lottie_element_145)" fill-opacity="1" d=" M0,-16 C8.830400466918945,-16 16,-8.830400466918945 16,0 C16,8.830400466918945 8.830400466918945,16 0,16 C-8.830400466918945,16 -16,8.830400466918945 -16,0 C-16,-8.830400466918945 -8.830400466918945,-16 0,-16z"></path></g></g></g></g></svg>
+                </div>
+                <div class="loading-bar bar1"></div>
+                <div class="loading-bar bar2"></div>
+                <div class="loading-bar bar3"></div>
+              </div>
+            `;
+
     const ingredientLabel = document.createElement("h3");
     ingredientLabel.textContent = "Ingredienti:";
     ingredientLabel.style.marginBottom = "15px";
@@ -502,9 +556,11 @@ class RecipeUI {
     // Pulizia del contenitore e aggiunta degli elementi principali
     detailContainer.innerHTML = "";
     detailContainer.appendChild(title);
+    detailContainer.appendChild(subs);
+    detailContainer.appendChild(geminiNutrition);
     detailContainer.appendChild(info);
     detailContainer.appendChild(ingredientLabel);
-
+    const selectedAlternatives = new Map();
     // Promesse per caricare tutti i dati degli ingredienti in parallelo
     const ingredientPromises = recipe.ingredients.map(async (ing) => {
       const ingCard = document.createElement("div");
@@ -519,16 +575,60 @@ class RecipeUI {
       ingCard.appendChild(header);
 
       // Carica calorie in parallelo
-      const caloriePromise = this.apiService
-        .getIngredientCalories(ing)
-        .then((calorieValue) => {
-          if (calorieValue) {
+      const nutritionPromise = this.apiService
+        .getIngredientNutrition(ing)
+        .then((values) => {
+          if (values) {
+            mappingIngsValue.set(Utils.extractLocalName(ing), values);
             const calorieInfo = document.createElement("p");
             calorieInfo.className = "ingredient-calories";
-            calorieInfo.textContent = `Calorie: ${calorieValue} kcal`;
+            calorieInfo.textContent = `Calorie: ${values.calories} kcal`;
             ingCard.appendChild(calorieInfo);
+            if (mappingIngsValue.size === recipe.ingredients.length) {
+              const mapForPrompt = new Map();
+              mapForPrompt.set("nome_ricetta", recipe.label);
+              mapForPrompt.set(
+                "ingredienti_per_ricetta",
+                recipe.ingredientText
+              );
+              mapForPrompt.set(
+                "valori_nutrizionali_100g",
+                JSON.stringify(Object.fromEntries(mappingIngsValue))
+              );
+              showGeminiNutrition(mapForPrompt);
+            }
           }
         });
+
+      const showGeminiNutrition = async (mapToSend) => {
+        try {
+          const toSend = JSON.stringify(Object.fromEntries(mapToSend));
+          const response = await this.apiService.getGeminiNutrition(toSend);
+          const data = response[recipe.label];
+          let element = document.getElementById("geminiNutrition");
+
+          // Assuming the response has data in a structure like this:
+          // { calories, proteins, saturatedFat, unsaturatedFat, carbohydrates, sugars, fibers }
+          element.innerHTML = `
+              <h3>Valori Nutrizionali per una porzione -- Powered by Google Gemini AI</h3>
+              <div class="gemini-nutrition-grid" id="geminiNutritionGrid">
+                <div class="gemini-nutrition-grid-header">
+                  <span>Calorie: ${data.kcal}</span><br>
+                  <span>Proteine: ${data.proteine}</span><br>
+                  <span>Grassi saturi: ${data.grassi_saturi}</span><br>
+                  <span>Grassi insaturi: ${data.grassi_insaturi}</span><br>
+                  <span>Carboidrati: ${data.carboidrati}</span><br>
+                  <span>Zuccheri: ${data.zuccheri}</span><br>
+                  <span>Fibre: ${data.fibre}</span><br>
+                  <span>Sale: ${data.sale}</span><br>
+                </div>
+              </div>
+            `;
+          element.style.display = "block";
+        } catch (error) {
+          console.error("Error fetching Gemini Nutrition:", error);
+        }
+      };
 
       // Carica alternative in parallelo
       const alternativesPromise = this.apiService
@@ -546,9 +646,10 @@ class RecipeUI {
 
               if (this.recipeManager.alternativeIcons[altType]) {
                 altValues.forEach((altLabel) => {
+                  const name = Utils.extractLocalName(ing);
                   const chip = document.createElement("div");
                   chip.className = "alternative-chip";
-                  chip.dataset.ingredientId = Utils.extractLocalName(ing);
+                  chip.dataset.ingredientId = name;
                   chip.dataset.alternativeType = altType;
                   chip.dataset.alternativeValue = altLabel;
 
@@ -560,6 +661,23 @@ class RecipeUI {
                   chip.addEventListener("click", (e) => {
                     e.stopPropagation();
                     chip.classList.toggle("selected");
+                    //Aggiungi alla array delle alternative selezionate per l'ingrediente
+                    if (chip.classList.contains("selected")) {
+                      if (!selectedAlternatives.has(name)) {
+                        selectedAlternatives.set(name, []);
+                      }
+                      selectedAlternatives.get(name).push(altLabel);
+                    } else {
+                      selectedAlternatives
+                        .get(name)
+                        .splice(
+                          selectedAlternatives.get(name).indexOf(altLabel),
+                          1
+                        );
+                      if (selectedAlternatives.get(name).length === 0) {
+                        selectedAlternatives.delete(name);
+                      }
+                    }
                   });
 
                   altContainer.appendChild(chip);
@@ -572,7 +690,7 @@ class RecipeUI {
         });
 
       // Attendi che entrambe le promesse siano risolte
-      await Promise.all([caloriePromise, alternativesPromise]);
+      await Promise.all([nutritionPromise, alternativesPromise]);
       return ingCard;
     });
 
@@ -595,7 +713,9 @@ class RecipeUI {
     const reworkBtn = document.createElement("button");
     reworkBtn.id = "reworkButton";
     reworkBtn.textContent = "Rielabora Ricetta";
-    reworkBtn.addEventListener("click", () => this.processRework(recipe));
+    reworkBtn.addEventListener("click", () =>
+      this.processRework(recipe, selectedAlternatives)
+    );
     detailContainer.appendChild(reworkBtn);
 
     // Pulsante per tornare alla lista delle ricette
@@ -616,17 +736,35 @@ class RecipeUI {
     myModal.show();
   }
 
-  processRework(recipe) {
+  processRework(recipe, selectedAlternatives) {
     const detailContainer = this.elements.recipeDetail;
     const resultContainer = document.createElement("div");
     resultContainer.className = "reworked-result";
-    resultContainer.textContent = "Rielaborazione in corso...";
+    resultContainer.innerHTML = `
+    <div class="gemini-loading">
+      <div class="gemini-star">
+        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 32 32" width="32" height="32" preserveAspectRatio="xMidYMid meet" style="width: 100%; height: 100%; transform: translate3d(0px, 0px, 0px); content-visibility: visible;"><defs><clipPath id="__lottie_element_131"><rect width="32" height="32" x="0" y="0"></rect></clipPath><g id="__lottie_element_138"><g transform="matrix(-1,0,0,-1,16,16)" opacity="1" style="display: block;"><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path fill="url(#__lottie_element_141)" fill-opacity="1" d=" M0.027000000700354576,14 C0.47999998927116394,6.489999771118164 6.489999771118164,0.47999998927116394 14,0.027000000700354576 C14,0.027000000700354576 14,-0.027000000700354576 14,-0.027000000700354576 C6.489999771118164,-0.47999998927116394 0.47999998927116394,-6.489999771118164 0.027000000700354576,-14 C0.027000000700354576,-14 -0.027000000700354576,-14 -0.027000000700354576,-14 C-0.47999998927116394,-6.489999771118164 -6.489999771118164,-0.47999998927116394 -14,-0.027000000700354576 C-14,-0.027000000700354576 -14,0.027000000700354576 -14,0.027000000700354576 C-6.489999771118164,0.47999998927116394 -0.47999998927116394,6.489999771118164 -0.027000000700354576,14 C-0.027000000700354576,14 0.027000000700354576,14 0.027000000700354576,14z"></path></g></g></g><linearGradient id="__lottie_element_141" spreadMethod="pad" gradientUnits="userSpaceOnUse" x1="-9.222999572753906" y1="8.489999771118164" x2="10.461999893188477" y2="-8.211999893188477"><stop offset="0%" stop-color="rgb(33,123,254)"></stop><stop offset="14%" stop-color="rgb(20,133,252)"></stop><stop offset="27%" stop-color="rgb(7,142,251)"></stop><stop offset="52%" stop-color="rgb(84,143,253)"></stop><stop offset="78%" stop-color="rgb(161,144,255)"></stop><stop offset="89%" stop-color="rgb(175,148,254)"></stop><stop offset="100%" stop-color="rgb(189,153,254)"></stop></linearGradient><linearGradient id="__lottie_element_145" spreadMethod="pad" gradientUnits="userSpaceOnUse" x1="-4.002999782562256" y1="4.630000114440918" x2="8.092000007629395" y2="-7.886000156402588"><stop offset="0%" stop-color="rgb(33,123,254)"></stop><stop offset="14%" stop-color="rgb(20,133,252)"></stop><stop offset="27%" stop-color="rgb(7,142,251)"></stop><stop offset="52%" stop-color="rgb(84,143,253)"></stop><stop offset="78%" stop-color="rgb(161,144,255)"></stop><stop offset="89%" stop-color="rgb(175,148,254)"></stop><stop offset="100%" stop-color="rgb(189,153,254)"></stop></linearGradient><mask id="__lottie_element_138_1" mask-type="alpha"><use xlink:href="#__lottie_element_138"></use></mask></defs><g clip-path="url(#__lottie_element_131)"><g mask="url(#__lottie_element_138_1)" style="display: block;"><g transform="matrix(1,0,0,1,16,16)" opacity="1"><g opacity="1" transform="matrix(1,0,0,1,0,0)"><path fill="url(#__lottie_element_145)" fill-opacity="1" d=" M0,-16 C8.830400466918945,-16 16,-8.830400466918945 16,0 C16,8.830400466918945 8.830400466918945,16 0,16 C-8.830400466918945,16 -16,8.830400466918945 -16,0 C-16,-8.830400466918945 -8.830400466918945,-16 0,-16z"></path></g></g></g></g></svg>
+      </div>
+      <div class="loading-bar bar1"></div>
+      <div class="loading-bar bar2"></div>
+      <div class="loading-bar bar3"></div>
+    </div>
+    `;
     detailContainer.appendChild(resultContainer);
-
-    setTimeout(() => {
-      resultContainer.textContent =
-        "Ricetta rielaborata:\n" + JSON.stringify(recipe, null, 2);
-    }, 1500);
+    var text = "";
+    selectedAlternatives.forEach((value, key) => {
+      text += "Sostituisci " + key + " con " + value.join(", ") + "\n";
+    });
+    text += "\n\nLa ricetta è: " + recipe.preparation + "\n\n";
+    const prompt = encodeURIComponent(text);
+    this.apiService.getGeminiRework(prompt).then((data) => {
+      if (data.length === 0) {
+        resultContainer.textContent = "Nessuna rielaborazione trovata.";
+        return;
+      }
+      const result = data[Object.keys(data)[0]];
+      resultContainer.innerHTML = `<p>Ricetta rielaborata: ${result["preparazione"]}</p>`;
+    });
   }
 }
 
@@ -641,8 +779,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     await recipeManager.loadAllRecipes();
     ui.populateFilters();
     ui.renderCards();
-
-    console.log("Applicazione inizializzata con successo");
   } catch (error) {
     console.error(
       "Errore durante l'inizializzazione dell'applicazione:",
