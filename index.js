@@ -197,23 +197,22 @@ app.get("/alternatives", async (req, res) => {
   }
 
   const query = `
-      PREFIX ex: <http://example.org/ontology#>
-      PREFIX dbo: <http://dbpedia.org/ontology/>
-      PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ex: <http://example.org/ontology#>
+PREFIX dbo: <http://dbpedia.org/ontology/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
-      SELECT ?type (GROUP_CONCAT(DISTINCT ?alternativeLabel; separator=", ") AS ?alternatives) WHERE {
-          ex:${ingredient} ?type ?alternative .
-          FILTER (?type IN (
-              ex:alternative,
-              ex:bindingAlternative,
-              ex:leaveningAlternative,
-              ex:veganAlternative,
-              ex:vegetarianAlternative,
-              ex:glutenFreeAlternative
-          ))
-          ?alternative dbo:name ?alternativeLabel .
-      }
-      GROUP BY ?type
+SELECT ?type (GROUP_CONCAT(DISTINCT ?alternative; separator=", ") AS ?alternatives) WHERE {
+    ex:${ingredient} ?type ?alternative .
+    FILTER (?type IN (
+        ex:alternative,
+        ex:bindingAlternative,
+        ex:leaveningAlternative,
+        ex:veganAlternative,
+        ex:vegetarianAlternative,
+        ex:glutenFreeAlternative
+    ))
+}
+GROUP BY ?type
   `;
 
   try {

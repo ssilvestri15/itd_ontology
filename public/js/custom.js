@@ -654,8 +654,12 @@ class RecipeUI {
                   chip.dataset.alternativeValue = altLabel;
 
                   chip.innerHTML = `
-                  <span class="material-icons">${this.recipeManager.alternativeIcons[altType].icon}</span>
-                  <span>${this.recipeManager.alternativeIcons[altType].label}: ${altLabel}</span>
+                  <span class="material-icons">${
+                    this.recipeManager.alternativeIcons[altType].icon
+                  }</span>
+                  <span>${
+                    this.recipeManager.alternativeIcons[altType].label
+                  }: ${Utils.extractLocalName(altLabel)}</span>
                 `;
 
                   chip.addEventListener("click", (e) => {
