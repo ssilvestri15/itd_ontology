@@ -728,7 +728,7 @@ class RecipeUI {
     // Add a listener to toggle the button visibility based on selections
     const toggleReworkButtonVisibility = () => {
       reworkBtn.style.display =
-        selectedAlternatives.size > 0 ? "inline-block" : "none";
+        selectedAlternatives.size > 0 ? "block" : "none";
     };
 
     // Pulsante per tornare alla lista delle ricette
