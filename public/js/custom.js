@@ -682,6 +682,7 @@ class RecipeUI {
                         selectedAlternatives.delete(name);
                       }
                     }
+                    toggleReworkButtonVisibility();
                   });
 
                   altContainer.appendChild(chip);
@@ -717,10 +718,18 @@ class RecipeUI {
     const reworkBtn = document.createElement("button");
     reworkBtn.id = "reworkButton";
     reworkBtn.textContent = "Rielabora Ricetta";
+    reworkBtn.classList.add("btn", "btn-primary");
+    reworkBtn.style.display = "none"; // Initially hide the button
     reworkBtn.addEventListener("click", () =>
       this.processRework(recipe, selectedAlternatives)
     );
     detailContainer.appendChild(reworkBtn);
+
+    // Add a listener to toggle the button visibility based on selections
+    const toggleReworkButtonVisibility = () => {
+      reworkBtn.style.display =
+        selectedAlternatives.size > 0 ? "inline-block" : "none";
+    };
 
     // Pulsante per tornare alla lista delle ricette
     const backBtn = document.createElement("button");
